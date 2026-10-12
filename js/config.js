@@ -28,7 +28,7 @@ HH.SITE = {
   question: "Is YOUR generation “lost”???",
   genZ: "Generation Z · born 1997–2012",
   // Henry writes these two. Leave "" until then.
-  THESIS: "Gen z is a lost generation. Today, our generation is using AI more and more. However, depending on AI, in fact, weakens our creativity, independence, and meaningful experiences. Therefore, we are lost.",
+  THESIS: "Gen z is a lost generation. Today, our generation uses new technologies and AI in many situations. However, depending on these new technologies can weaken our creativity, independence, and the way we gain our meaningful experiences. Therefore, we are a lost generation.",
   THESIS_ASK: "한 문장으로: Gen Z는 lost다, 왜냐하면 ___. 여섯 방이 다 이 문장을 증명해야 해.",
   ENDING: "",
   exitWindow: "assets/bd-7-seoul.jpg",
@@ -135,7 +135,7 @@ HH.EXHIBITS = [
     highlight: [2, 7],   // lines to glow brighter (big dream, diving in)
     slots: {
       why: {
-        text: "I included this song because I was impressed that someone around my age could write his own lyrics and share his dreams with the world through music. I think it takes a lot of passion and courage to express yourself like that.",
+        text: "I included this song because I was surprised that someone my age could write his own lyrics and share his dreams with the world through music. Indeed, expressing oneself through one's creative work takes a lot of passion and courage, which is why Yuleum's work is so impressive.",
         draft: "Yuleum is a 17-year-old Korean rapper who raps about his big dream and the way he achieves it. He says he only knows music, and he is even “diving in” to music.",
         ask: "가사 중에 네가 제일 꽂힌 줄 하나는? 왜 하필 그 줄이야?"
       },
@@ -184,7 +184,7 @@ HH.EXHIBITS = [
     },
     slots: {
       why: {
-        text: "I included this article because Australia’s social media ban shows how seriously governments are starting to treat the negative effects of social media on young people. The Australian government said the ban would reduce the harmful effects of social media features that encourage young people to spend more time on screens and expose them to harmful content.",
+        text: "I included this article because Australia’s social media ban is a representative example of governments' initiatives that seriously address the negative effects of social media on young people. The Australian government said the ban would minimize the negative and often harmful effects of social media because many young people today spend huge amount of time on screens and are exposed to some harmful content.",
         draft: "Teens my age are using social media everyday. It’s our daily messenger for now.",
         ask: "내일 한국에서 같은 법이 생기면 네가 제일 먼저 잃는 앱은? 그 앱에서 뭐가 제일 아쉬울까?"
       },
@@ -194,7 +194,7 @@ HH.EXHIBITS = [
         ask: "체크: “forcing us to now use”는 “not use”를 쓰려던 거야?"
       },
       supports: {
-        text: "This article supports my argument because social media has become such an essential part of our lives that governments are now restricting our access to it. Adults are making decisions about something that affects our daily lives, and I wonder whether teenagers’ opinions are being fully considered. I understand that social media can harm our health, but I also think it is important for adults to understand why we depend on it. This makes me wonder whether our generation has become so dependent on social media that we can no longer manage its effects on our own.",
+        text: "This article supports my argument because social media has become an essential part of teenager's lives. Today, some governments are trying to restrict teenagers' access to social media, making decisions that directly affects our daily lives. Thus, I wonder whether our opinions and voices are being fully considered. Even though social media can harm teenagers' health in some ways, it is still important for adults to understand why we depend on it so much.  To sum up, this makes me wonder whether our generation has become so obsessed with social media that we are no longer able to manage ourselves.",
         draft: "This shows that our generation is so lost in social media that the government and ‘the adults’ think that they had to control over us.",
         ask: "금지법은 우리가 lost라는 증거야, 아니면 어른들이 그렇게 믿는다는 증거야? 네 생각은 어느 쪽이야?"
       }
@@ -239,17 +239,17 @@ HH.EXHIBITS = [
     },
     slots: {
       why: {
-        text: "I included this artifact because it represents how important studying and academic achievement are for students in my generation. The app helps me focus on studying, but it also shows how much attention we give to study hours and rankings.",
+        text: "I included this application because it reflects the importance of studying for students in my generation. YPT is application that helps the users to focus on studying by showing the total amount of study hours and rankings among other users.",
         draft: "Yeolpumta(YPT) is a Korean study app that records how many hours I really study and ranks me with other students using the same app.",
         ask: "스크린샷 속 숫자 하나를 골라봐. 10시간 56분인 날은 무슨 날이었어?"
       },
       means: {
-        text: "Yeolpumta means a lot to me because it records how many hours I actually study and ranks me with other students using the same app. As a student, studying is one of the most important parts of my daily life, and YPT helps me keep track of my progress.",
+        text: "Yeolpumta means a lot to me because it helps me to measure how many hours I actually study and compares me with other students who are using the same app. Because I am currently a student, academic achievement is one of the most important priorities in my life, and YPT is a great application that helps me to check on my progress.",
         draft: "",
         ask: "proposal에 이 칸에 맞는 문장이 아직 없어. 순공시간 랭킹이 너한테 어떤 기분이야? 뿌듯함, 압박, 아니면 숙제?"
       },
       supports: {
-        text: "This artifact supports my argument because AI can now solve difficult math problems in minutes and write sophisticated essays in seconds. Students spend years developing academic skills, but AI can already perform many of these tasks. This makes me question what all our studying will mean in the future if AI can do so many things that we spend years learning to do. Our generation is becoming lost because we are working hard to develop skills that AI is already learning to perform.",
+        text: "This artifact clearly supports my argument. Today, AI solves difficult math problems that used to be seemed impossible for humans to solve. Moreover, AI also writes advanced essays that are so good as if it's written by Shakespeare or Dickens. In our generation, we are now spending 12 years in school to develop some basic academic skills. However, AI can already perform many of these tasks. If AI can perform our tasks in just few seconds, is all our studying really worth it? This is why our generation is becoming lost: we are trying our best to develop skills that AI can already perform in better speed and precision.",
         draft: "For students, studying is one of the most important priority, but today AI can solve some difficult math problems in about few minutes and write sophisticated essays in seconds. Students are spending their whole teenage years for studying skills, but AI today already has these skills. That’s why our generation is so lost.",
         ask: "2,635분을 공부한 너는 lost야? 아니면 그 시간을 AI와 비교하는 세상이 lost야?"
       }
@@ -291,7 +291,7 @@ HH.EXHIBITS = [
     },
     slots: {
       why: {
-        text: "I included my Spotify account because it shows how technology influences the music we listen to. Honestly, many of the songs I listen to are recommended by Spotify’s algorithm. I also found it surprising that an AI-generated music project called The Velvet Sundown attracted many listeners before its AI origins became widely known.",
+        text: "I included my Spotify account because it reflects the effects of technologies on our music tastes. For example, many songs that I listen to are not chosen by myself but are recommended by Spotify’s algorithm. In addition, there exists an AI-generated music project called The Velvet Sundown which has attracted many listeners even though its AI origins were revealed after it got hyped.",
         draft: "I like listening to music.",
         ask: "좋아하는 아티스트 다섯 중에 알고리즘 말고 네가 직접 찾은 사람은 누구야? 어떻게 찾았어?"
       },
@@ -301,7 +301,7 @@ HH.EXHIBITS = [
         ask: "최근 들은 노래 4곡 중에 네가 고른 건 몇 곡이야? 그 비율을 라벨의 “Songs I found by myself”에 넣어."
       },
       supports: {
-        text: "This artifact supports my argument because I think our generation is becoming too dependent on algorithms to choose our music. Instead of always discovering music on our own, we often listen to what platforms recommend to us. Also, when AI-generated music sounds like music made by real artists, it can become difficult to know who actually created it. Our generation is becoming lost because technology is influencing our choices so much that we may lose our independence as listeners and our connection to human artists.",
+        text: "This artifact supports my argument because our generation is becoming more dependent on algorithms and new technologies when choosing music. Today, people in our generation do not always try to discover music, but they just listen to what the music streaming platforms give us as recommendations. Also, the AI music generators are getting better and better; some AI-generated music are so advanced that it is very difficult to discern from human-made music. Our generation is getting lost because today technology, particularly AI, has direct influences on our choices and decisions. Thus, it's possible that we lose our originality and independence as listeners at some point in the future. In fact, our connection to human artists are now fading out.",
         draft: "Even more surprisingly, there was an AI band called The Velvet Sundown that got huge amount of listeners on Spotify before people found out it was AI. Our generation doesn’t even pick our own music anymore, and we can’t tell if the artist is real. That’s why we are lost today.",
         ask: "네가 The Velvet Sundown을 들었다면 AI인 걸 알아차렸을까? 좋으면 진짜든 아니든 상관없어?"
       }
@@ -340,7 +340,7 @@ HH.EXHIBITS = [
     },
     slots: {
       why: {
-        text: "I included this artifact because it represents something I achieved through my own effort. Unlike something that AI can generate in seconds, my Taekwondo experience required me to show up, practice, and improve consistently over many years. AI cannot go through those experiences for me or earn this achievement on my behalf.",
+        text: "I included my Taekwondo certificate because it is one of my achievements that I earned through my own effort. Unlike some AI-generated products, my experiences as a Taekwondo trainee require consistent practice and long-term dedication over many years. It is the accumulation of my efforts during the past thirteen years. However, AI is not able to complete those experiences for me, which means AI cannot earn this Taekwondo certificate or any other Taekwondo-related achievement on my behalf.",
         draft: "I have trained Taekwondo since 2013. It’s been 13 years since I first stepped into this martial art. I am a 4th degree (or 4th Dan) black belt.",
         ask: "증서에는 4단이 아니라 4품이라고 되어 있어. 문장을 맞게 고쳐. 13년 중에 그만두고 싶었던 날이 있었어?"
       },
@@ -350,7 +350,7 @@ HH.EXHIBITS = [
         ask: "네 몸이 아는데 화면으로는 못 배우는 동작 하나를 구체적으로 써봐."
       },
       supports: {
-        text: "This artifact supports my argument because it shows the value of real human effort and experience in a world increasingly influenced by technology. However, I worry that fewer children may participate in activities like Taekwondo as Korea’s birth rate declines and young people spend more time on screens. If fewer children continue these traditions, activities that require years of physical practice may gradually become less common. Our generation is becoming lost when we spend more time with technology and less time building real skills through personal experience and dedication.",
+        text: "This artifact supports my argument because it shows that real human effort and experiences are very valuable when new technologies and AI are exponentially getting better and thus influencing our lives. However, a number of Korean children who are participating in activities like Taekwondo is decreasing as South Korea's birth rates decline. In fact, children are now spending more time on screens. As a result, activities like Taekwondo that require years of dedication and demanding practices are gradually disappearing. To sum up, our generation will be lost when we spend more time with technology than having personal experiences and dedication.",
         draft: "But today fewer kids go to Taekwondo dojang because of low birth rate in Korea and kids are on screens instead. In the future the demand of Taekwondo will go down, so even the thing AI can’t replace is slowly disappearing. That’s why our generation is lost.",
         ask: "이 방은 네 ‘lost’ 주장의 예외야, 아니면 마지막 증거야? 박물관 끝에서 남기고 싶은 느낌을 정해봐."
       }
