@@ -603,8 +603,8 @@
       var r = rooms[s.n - 1];
       if (!r.active) { r.active = true; call(r, "enter", r.ctx); }
       showLabel(s.n);
-      startSong(s.n);
-      autoGuide(s.n);
+      if (!again) { startSong(s.n); autoGuide(s.n); }
+      else if (!(song.on && song.n === s.n)) startSong(s.n);
     } else if (s.kind === "exit") {
       openOverlay("exit");
     } else if (s.kind === "lobby" && !again) {
@@ -782,9 +782,21 @@
     a.addEventListener("loadedmetadata", function () { g.status = "ok"; paintGuide(n); });
     a.addEventListener("error", function () { g.status = "missing"; paintGuide(n); });
     a.addEventListener("timeupdate", function () { paintGuide(n); });
-    a.addEventListener("play", function () { duck(true); paintGuide(n); });
-    a.addEventListener("pause", function () { duck(false); paintGuide(n); });
-    a.addEventListener("ended", function () { a.currentTime = 0; paintGuide(n); });
+    // keep the song up through the room tone at the start of his recording and dip it as his first word lands,
+    // so the beat he times his voice to is still heard
+    var duckIv = 0;
+    function duckWhenTalking() {
+      clearInterval(duckIv); duckIv = 0;
+      var m = ex.media || {}, at = (m.voiceLead != null ? +m.voiceLead : VOICE_LEAD) - 0.03;
+      if ((a.currentTime || 0) >= at) { duck(true); return; }
+      duckIv = setInterval(function () {
+        if (a.paused) { clearInterval(duckIv); duckIv = 0; return; }
+        if (a.currentTime >= at) { clearInterval(duckIv); duckIv = 0; duck(true); }
+      }, 20);
+    }
+    a.addEventListener("play", function () { g.done = false; duckWhenTalking(); paintGuide(n); });
+    a.addEventListener("pause", function () { clearInterval(duckIv); duckIv = 0; if (!document.hidden) duck(false); paintGuide(n); });
+    a.addEventListener("ended", function () { g.done = true; a.currentTime = 0; paintGuide(n); });
     a.src = ex.audio;
     return g;
   }
@@ -817,15 +829,17 @@
       g.uis.push(el);
       el.querySelector(".guide-btn").onclick = function () {
         if (g.status === "missing") return;
+        cancelAutoGuide();
         if (g.a.paused) { stopGuides(n); g.a.play().catch(function () {}); } else g.a.pause();
       };
       var bar = el.querySelector(".guide-bar");
       bar.onclick = function (e) {
         var rc = bar.getBoundingClientRect(), d = g.a.duration;
-        if (d) g.a.currentTime = kit.clamp((e.clientX - rc.left) / rc.width, 0, 1) * d;
+        if (d) { cancelAutoGuide(); g.a.currentTime = kit.clamp((e.clientX - rc.left) / rc.width, 0, 1) * d; }
       };
       bar.onkeydown = function (e) {
         if (!g.a.duration) return;
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") { cancelAutoGuide(); e.stopPropagation(); }
         if (e.key === "ArrowRight") { g.a.currentTime = Math.min(g.a.duration, g.a.currentTime + 5); e.preventDefault(); }
         if (e.key === "ArrowLeft") { g.a.currentTime = Math.max(0, g.a.currentTime - 5); e.preventDefault(); }
       };
@@ -849,23 +863,30 @@
     var g = guideFor(n);
     if (!snd.on || g.status === "missing" || dbg.stop == null || STOPS[dbg.stop].n !== n) return;
     stopGuides(n);
-    try { g.a.currentTime = skip > 0 ? skip : 0; } catch (e) {}
+    var from = skip > 0 ? skip : 0;
+    try { if (g.a.currentTime !== from) g.a.currentTime = from; } catch (e) {}
+    if (document.hidden) { hidGuide = g.a; return; } // starts when the tab is shown again
     var pr = g.a.play(); if (pr && pr.catch) pr.catch(function () {});
     dbg.autoPlayed = (dbg.autoPlayed || []).concat([{ n: n, songAt: song.a && song.n === n ? +song.a.currentTime.toFixed(2) : null, skip: +(skip || 0).toFixed(2) }]);
   }
-  function autoGuide(n) {
+  function autoGuide(n, keepSong) {
     cancelAutoGuide();
     var ex = EX[n - 1], m = ex.media || {};
     if (!snd.on || !ex.audio) return;
     var g = guideFor(n); g.a.preload = "auto";
+    g.done = false; if (g.a.paused && g.a.currentTime !== 0) { try { g.a.currentTime = 0; } catch (e) {} } // a new visit starts him from the top
     auto.n = n;
     var cue = +m.voiceAt, lead = m.voiceLead != null ? +m.voiceLead : VOICE_LEAD;
     if (m.song && cue > 0 && song.a && song.src === m.song && song.on) {
-      try { song.a.currentTime = 0; } catch (e) {}
+      if (!keepSong) { try { song.a.currentTime = 0; } catch (e) {} }
+      var lastT = -1, lastMove = Date.now();
       auto.poll = setInterval(function () {
         if (auto.n !== n || !snd.on) { cancelAutoGuide(); return; }
         if (!song.on || song.n !== n) { cancelAutoGuide(); auto.n = n; auto.timer = setTimeout(function () { auto.timer = 0; playGuideNow(n); }, 400); return; }
-        var late = song.a.currentTime - (cue - lead);
+        var t = song.a.currentTime;
+        if (t !== lastT || document.hidden || song.a.paused || song.a.readyState > 2) { lastT = t; lastMove = Date.now(); }
+        else if (Date.now() - lastMove > 8000) { clearInterval(auto.poll); auto.poll = 0; playGuideNow(n); return; } // song stuck loading
+        var late = t - (cue - lead);
         // a busy frame can make this check run late; skip that much of the room tone so the first word still lands on the beat
         if (late >= 0) { clearInterval(auto.poll); auto.poll = 0; playGuideNow(n, late > 0.04 ? Math.min(late, lead - 0.05) : 0); }
       }, 25);
@@ -907,21 +928,60 @@
     $("soundBtn").textContent = on ? "Sound on" : "Sound off";
     if (on && ensureAudio()) { snd.ctx.resume(); }
     if (snd.ctx) snd.master.gain.setTargetAtTime(on ? 0.9 : 0, snd.ctx.currentTime, 0.25);
-    var st = STOPS[dbg.stop];
-    if (on && st && st.kind === "room" && entered) startSong(st.n); else if (!on) stopSong();
+    var st = walk ? null : STOPS[dbg.stop]; // during a walk, arrive() starts the destination room
+    if (!on) { cancelAutoGuide(); stopGuides(); stopSong(); }
+    else if (st && st.kind === "room" && entered && !imm && overlayOpen !== "flat") {
+      startSong(st.n);
+      var g = guides[st.n];
+      if (g && !g.done && g.a.paused && g.a.currentTime > 0) { stopGuides(st.n); g.a.play().catch(function () {}); } // pick up where he stopped
+      else if (!g || (!g.done && g.a.paused)) autoGuide(st.n);
+    }
     paintSong();
   }
-  function duck(on) { if (snd.ctx) snd.amb.gain.setTargetAtTime(on ? 0.15 : 1, snd.ctx.currentTime, 0.3); song.duck = on; songFade(); }
+  function duck(on) {
+    if (snd.ctx) snd.amb.gain.setTargetAtTime(on ? 0.15 : 1, snd.ctx.currentTime, 0.3);
+    song.duck = on;
+    var a = song.a;
+    if (a) {
+      if (!VOL_OK) a.muted = on;
+      // short song clips (GitHub copy): don't let the intro restart under Henry; bring the song back after him
+      if (a.duration && a.duration < 100) {
+        var ended = a.ended || (a.paused && a.currentTime >= a.duration - 0.05);
+        a.loop = !on;
+        if (!on && song.on && ended) { song.v = 0; try { a.volume = 0; a.currentTime = 0; } catch (e) {} var pr = a.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      }
+    }
+    songFade();
+  }
 
   /* ---------- room song: loops while the visitor stands in that room ---------- */
   var SONG_VOL = 0.6, SONG_BED = 0.12;
   var song = { a: null, src: "", n: 0, on: false, duck: false, v: 0, timer: 0 };
+  var songMuted = false; // the label's Mute button: music off for this visit, Henry keeps talking
+  var VOL_OK = (function () { try { var t = document.createElement("audio"); t.volume = 0.5; return Math.abs(t.volume - 0.5) < 0.01; } catch (e) { return true; } })();
+  function songEl() {
+    if (song.a) return song.a;
+    var a = song.a = new Audio(); a.loop = true; a.preload = "auto";
+    try { a.volume = 0; } catch (e) {}
+    a.addEventListener("error", function () { if (song.src) { song.on = false; paintSong(); } });
+    a.addEventListener("durationchange", function () { if (a.duration < 100) a.loop = !song.duck; });
+    return a;
+  }
+  // Safari and every iPhone browser only let a sound start by itself if its player was created or loaded
+  // during a tap or click, so this runs once inside the "Enter the museum" click
+  var unlocked = false;
+  function unlockMedia() {
+    if (unlocked) return; unlocked = true;
+    var els = [songEl()];
+    EX.forEach(function (e) { if (e.audio) els.push(guideFor(e.n).a); });
+    els.forEach(function (el) { try { el.load(); } catch (e) {} });
+  }
   function songFade() {
     if (song.timer || !song.a) return;
     song.timer = setInterval(function () {
       var a = song.a;
       var tgt = song.on ? (song.duck ? SONG_BED : SONG_VOL) : 0;
-      song.v += (tgt - song.v) * 0.16;
+      song.v += (tgt - song.v) * (song.duck && tgt < song.v ? 0.35 : 0.16);
       if (Math.abs(tgt - song.v) < 0.01) song.v = tgt;
       try { a.volume = Math.max(0, Math.min(1, song.v)); } catch (e) {}
       if (!song.on && song.v === 0 && !a.paused) a.pause();
@@ -930,22 +990,21 @@
   }
   function startSong(n) {
     var ex = EX[n - 1], src = ex && ex.media && ex.media.song;
-    if (!src || !snd.on) return;
-    if (!song.a || song.src !== src) {
-      if (song.a) song.a.pause();
-      song.a = new Audio(src); song.src = src; song.a.loop = true; song.a.preload = "auto"; song.v = 0;
-      try { song.a.volume = 0; } catch (e) {}
-      song.a.addEventListener("error", function () { song.on = false; paintSong(); });
-    }
+    if (!src || !snd.on || songMuted) return;
+    var a = songEl();
+    if (song.src !== src) { clearInterval(song.timer); song.timer = 0; a.pause(); a.src = src; song.src = src; song.v = 0; try { a.volume = 0; } catch (e) {} }
+    a.loop = !(song.duck && a.duration && a.duration < 100);
     song.on = true; song.n = n;
-    var pr = song.a.play();
-    if (pr && pr.catch) pr.catch(function () { song.on = false; paintSong(); });
-    songFade(); paintSong();
+    if (!VOL_OK) a.muted = song.duck;
+    var pr = a.play();
+    if (pr && pr.catch) pr.catch(function (e) { if (song.src === src && !(e && e.name === "AbortError")) { song.on = false; paintSong(); } });
+    if (a.readyState < 3) a.addEventListener("playing", songFade, { once: true }); else songFade(); // a slow download fades in, not in at full volume
+    paintSong();
   }
   function stopSong() {
     if (!song.a) return;
     song.on = false; song.n = 0;
-    if (reduced) { song.a.pause(); song.v = 0; }
+    if (reduced || !VOL_OK) { song.a.pause(); song.v = 0; }
     songFade(); paintSong();
   }
   function paintSong() {
@@ -959,11 +1018,25 @@
   document.addEventListener("click", function (e) {
     var b = e.target.closest(".lb-song-b"); if (!b) return;
     var n = +b.closest(".lb-song").dataset.song;
-    if (song.on && song.n === n) { setSound(false); } else { if (!snd.on) setSound(true); else startSong(n); }
+    if (song.on && song.n === n) { songMuted = true; stopSong(); }
+    else { songMuted = false; if (!snd.on) setSound(true); startSong(n); }
   });
+  var hidGuide = null;
   document.addEventListener("visibilitychange", function () {
-    if (!song.a) return;
-    if (document.hidden) song.a.pause(); else if (song.on) { var pr = song.a.play(); if (pr && pr.catch) pr.catch(function () {}); }
+    if (document.hidden) {
+      Object.keys(guides).forEach(function (k) { if (!guides[k].a.paused) { hidGuide = guides[k].a; hidGuide.pause(); } });
+      if (song.a) song.a.pause();
+      if (snd.ctx) snd.ctx.suspend();
+    } else {
+      if (snd.ctx && snd.on) snd.ctx.resume();
+      if (song.a && song.on && !(song.duck && song.a.ended)) { var pr = song.a.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      var resumed = false;
+      if (hidGuide) {
+        var a = hidGuide, st = walk ? null : STOPS[dbg.stop]; hidGuide = null;
+        if (snd.on && st && st.kind === "room" && guides[st.n] && guides[st.n].a === a) { a.play().catch(function () {}); resumed = true; }
+      }
+      if (!resumed && song.duck && !Object.keys(guides).some(function (k) { return !guides[k].a.paused; })) duck(false);
+    }
   });
   function footstep(i) {
     if (!snd.on || !snd.ctx || !snd.noise) return;
@@ -993,13 +1066,13 @@
     overlayOpen = id;
     if (id === "map") paintMap();
     if (id === "exit") paintExit();
-    if (id === "flat") { paintFlat(); paused = true; }
+    if (id === "flat") { cancelAutoGuide(); paintFlat(); paused = true; }
     var f = el.querySelector("[data-close], button, a"); if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
   }
   function closeOverlay(id) {
     var el = $(id); if (!el || el.hidden) return;
     el.hidden = true;
-    if (id === "flat") { paused = false; stopGuides(); }
+    if (id === "flat") { paused = false; stopGuides(); voiceAfterView(); }
     if (overlayOpen === id) overlayOpen = null;
   }
   function closeOverlays() { ["map", "exit", "flat"].forEach(closeOverlay); }
@@ -1101,6 +1174,7 @@
   function openImmersive(n) {
     var r = rooms[n - 1];
     if (!r || !r.def || !r.def.immersive || imm) return;
+    cancelAutoGuide();
     stopGuides();
     var box = $("imm"), sc = $("immScroll");
     box.hidden = false; sc.innerHTML = ""; sc.scrollTop = 0;
@@ -1112,6 +1186,16 @@
     sc.focus({ preventScroll: true });
     setTimeout(function () { $("immClose").focus({ preventScroll: true }); }, 40);
   }
+  function voiceAfterView() {
+    var st = STOPS[dbg.stop];
+    if (!entered || walk || !snd.on || !st || st.kind !== "room") return;
+    if (!(song.on && song.n === st.n)) startSong(st.n);
+    var g = guides[st.n];
+    if (!g || g.status === "missing" || g.done || !g.a.paused || g.a.currentTime > 0 || auto.n) return;
+    var m = EX[st.n - 1].media || {}, lead = m.voiceLead != null ? +m.voiceLead : VOICE_LEAD;
+    if (+m.voiceAt > 0 && song.on && song.n === st.n && song.src === m.song && song.a.currentTime < +m.voiceAt - lead) { autoGuide(st.n, true); return; }
+    auto.n = st.n; auto.timer = setTimeout(function () { auto.timer = 0; if (auto.n === st.n) playGuideNow(st.n); }, 700);
+  }
   function closeImmersive() {
     if (!imm) return;
     try { if (imm.h && imm.h.destroy) imm.h.destroy(); } catch (e) { dbg.errors.push("immersive destroy: " + e.message); }
@@ -1119,6 +1203,7 @@
     $("immScroll").innerHTML = ""; $("imm").hidden = true;
     paused = !!(overlayOpen === "flat");
     clock.last = performance.now();
+    if (!paused) voiceAfterView();
   }
   $("immClose").onclick = closeImmersive;
   window.addEventListener("hh:close-immersive", closeImmersive);
@@ -1155,7 +1240,7 @@
     showLobby(false);
     $("hud").hidden = false; $("rail").hidden = false;
     $("draftBadge").hidden = !draft;
-    if (first) setSound(snd.on);
+    if (first) { unlockMedia(); setSound(snd.on); }
     goTo(stop, { force: true });
   }
   $("enterBtn").onclick = function () {
@@ -1255,7 +1340,7 @@
     else if (k === "Home") goTo(0);
     else if (k === "End") goTo(STOPS.length - 1);
     else if (k === "m" || k === "M") overlayOpen === "map" ? closeOverlay("map") : openOverlay("map");
-    else if (k === "p" || k === "P") { var s = STOPS[dbg.stop]; if (s.kind === "room") { var g = guideFor(s.n); if (g.status !== "missing") { if (g.a.paused) g.a.play().catch(function () {}); else g.a.pause(); } } }
+    else if (k === "p" || k === "P") { if (walk) return; var s = STOPS[dbg.stop]; if (s.kind === "room") { var g = guideFor(s.n); if (g.status !== "missing") { cancelAutoGuide(); if (g.a.paused) { stopGuides(s.n); g.a.play().catch(function () {}); } else g.a.pause(); } } }
     else if (/^[1-9]$/.test(k) && +k <= EX.length) { closeOverlays(); goTo(+k); }
   });
 

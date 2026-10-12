@@ -260,7 +260,7 @@ HH.EXHIBITS = [
       ["NewJeans. “New Jeans.” 2023. Plays in this room.", "https://youtu.be/G8GEpK7YDl4"]
     ],
     audio: "audio/room4.mp3",
-    media: { calendar: "assets/ypt-calendar.jpg", timer: "assets/ypt-timer.jpg", song: "audio/newjeans.mp3", voiceAt: 7.18, voiceLead: 0.69, songTitle: "New Jeans · NewJeans", backdrop: "assets/bd-4-studycafe.jpg" }
+    media: { calendar: "assets/ypt-calendar.jpg", timer: "assets/ypt-timer.jpg", song: "audio/newjeans.mp3", voiceAt: 14.57, voiceLead: 0.69, songTitle: "New Jeans · NewJeans", backdrop: "assets/bd-4-studycafe.jpg" }
   },
   {
     n: 5, slug: "spotify", side: -1,
@@ -362,6 +362,6 @@ HH.EXHIBITS = [
       ["Sik-K (식케이) and Lil Moshpit. “LALALA (Snitch Club K-FLIP).” Plays in this room.", "https://youtu.be/lbTuRQ0pHEk"]
     ],
     audio: "audio/room6.mp3",
-    media: { certificate: "assets/poom-certificate.jpg", kickVideo: "", song: "audio/lalala.mp3", voiceAt: 12.87, voiceLead: 0.85, songTitle: "LALALA · Sik-K, Lil Moshpit", backdrop: "assets/bd-6-dojang.jpg" }
+    media: { certificate: "assets/poom-certificate.jpg", kickVideo: "", song: "audio/lalala.mp3", voiceAt: 51.27, voiceLead: 0.85, songTitle: "LALALA · Sik-K, Lil Moshpit", backdrop: "assets/bd-6-dojang.jpg" }
   }
 ];
