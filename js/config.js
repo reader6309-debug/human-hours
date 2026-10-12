@@ -362,6 +362,6 @@ HH.EXHIBITS = [
       ["Sik-K (식케이) and Lil Moshpit. “LALALA (Snitch Club K-FLIP).” Plays in this room.", "https://youtu.be/lbTuRQ0pHEk"]
     ],
     audio: "audio/room6.mp3",
-    media: { certificate: "assets/poom-certificate.jpg", kickVideo: "", song: "audio/lalala.mp3", clipLoop: [37.317, 56.517], voiceAt: 55.88, voiceLead: 0.67, songTitle: "LALALA · Sik-K, Lil Moshpit", backdrop: "assets/bd-6-dojang.jpg" }
+    media: { certificate: "assets/poom-certificate.jpg", kickVideo: "", song: "audio/lalala.mp3", clipLoop: [37.317, 56.517], voiceAt: 12.87, voiceLead: 0.67, songTitle: "LALALA · Sik-K, Lil Moshpit", backdrop: "assets/bd-6-dojang.jpg" }
   }
 ];
