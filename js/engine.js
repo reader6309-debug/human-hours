@@ -839,19 +839,19 @@
   /* Henry's narration starts by itself in every room. In a room with a song (media.song + media.voiceAt),
      the song plays from the top first and the voice comes in on the beat at voiceAt seconds. */
   var auto = { n: 0, timer: 0, poll: 0 };
-  var VOICE_LEAD = 0.3; // the recordings open with about 0.3 s of room tone
+  var VOICE_LEAD = 0.3; // default; media.voiceLead = seconds of room tone before Henry's first word in that recording
   function cancelAutoGuide() {
     if (auto.timer) clearTimeout(auto.timer);
     if (auto.poll) clearInterval(auto.poll);
     auto.timer = auto.poll = 0; auto.n = 0;
   }
-  function playGuideNow(n) {
+  function playGuideNow(n, skip) {
     var g = guideFor(n);
     if (!snd.on || g.status === "missing" || dbg.stop == null || STOPS[dbg.stop].n !== n) return;
     stopGuides(n);
-    try { g.a.currentTime = 0; } catch (e) {}
+    try { g.a.currentTime = skip > 0 ? skip : 0; } catch (e) {}
     var pr = g.a.play(); if (pr && pr.catch) pr.catch(function () {});
-    dbg.autoPlayed = (dbg.autoPlayed || []).concat([{ n: n, songAt: song.a && song.n === n ? +song.a.currentTime.toFixed(2) : null }]);
+    dbg.autoPlayed = (dbg.autoPlayed || []).concat([{ n: n, songAt: song.a && song.n === n ? +song.a.currentTime.toFixed(2) : null, skip: +(skip || 0).toFixed(2) }]);
   }
   function autoGuide(n) {
     cancelAutoGuide();
@@ -859,13 +859,15 @@
     if (!snd.on || !ex.audio) return;
     var g = guideFor(n); g.a.preload = "auto";
     auto.n = n;
-    var cue = +m.voiceAt;
+    var cue = +m.voiceAt, lead = m.voiceLead != null ? +m.voiceLead : VOICE_LEAD;
     if (m.song && cue > 0 && song.a && song.src === m.song && song.on) {
       try { song.a.currentTime = 0; } catch (e) {}
       auto.poll = setInterval(function () {
         if (auto.n !== n || !snd.on) { cancelAutoGuide(); return; }
         if (!song.on || song.n !== n) { cancelAutoGuide(); auto.n = n; auto.timer = setTimeout(function () { auto.timer = 0; playGuideNow(n); }, 400); return; }
-        if (song.a.currentTime >= cue - VOICE_LEAD) { clearInterval(auto.poll); auto.poll = 0; playGuideNow(n); }
+        var late = song.a.currentTime - (cue - lead);
+        // a busy frame can make this check run late; skip that much of the room tone so the first word still lands on the beat
+        if (late >= 0) { clearInterval(auto.poll); auto.poll = 0; playGuideNow(n, late > 0.04 ? Math.min(late, lead - 0.05) : 0); }
       }, 25);
     } else {
       auto.timer = setTimeout(function () { auto.timer = 0; if (auto.n === n) playGuideNow(n); }, 900);
