@@ -315,7 +315,7 @@ HH.EXHIBITS = [
       ["양홍원 (YANGHONGWON). “사계.” Plays in this room.", "https://youtu.be/SyuR49nbmrw"]
     ],
     audio: "audio/room5.mp3",
-    media: { screenshot: "assets/spotify.jpg", song: "audio/yanghongwon-sagye.mp3", voiceAt: 39.5, voiceLead: 0.89, songTitle: "사계 · 양홍원", backdrop: "assets/bd-5-records.jpg" }
+    media: { screenshot: "assets/spotify.jpg", song: "audio/yanghongwon-sagye.mp3", voiceAt: 22.11, voiceLead: 0.89, songTitle: "사계 · 양홍원", backdrop: "assets/bd-5-records.jpg" }
   },
   {
     n: 6, slug: "taekwondo", side: 1,
