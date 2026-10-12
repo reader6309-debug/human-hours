@@ -944,12 +944,6 @@
     var a = song.a;
     if (a) {
       if (!VOL_OK) a.muted = on;
-      // short song clips (GitHub copy): don't let the intro restart under Henry; bring the song back after him
-      if (a.duration && a.duration < 100) {
-        var ended = a.ended || (a.paused && a.currentTime >= a.duration - 0.05);
-        a.loop = !on;
-        if (!on && song.on && ended) { song.v = 0; try { a.volume = 0; a.currentTime = 0; } catch (e) {} var pr = a.play(); if (pr && pr.catch) pr.catch(function () {}); }
-      }
     }
     songFade();
   }
@@ -964,9 +958,15 @@
     var a = song.a = new Audio(); a.loop = true; a.preload = "auto";
     try { a.volume = 0; } catch (e) {}
     a.addEventListener("error", function () { if (song.src) { song.on = false; paintSong(); } });
-    a.addEventListener("durationchange", function () { if (a.duration < 100) a.loop = !song.duck; });
     return a;
   }
+  // short song clips (GitHub copy): at the end of each 8-bar phrase jump back one phrase (media.clipLoop = [from, to]),
+  // so the music keeps going under Henry and after him instead of stopping at the one-minute mark
+  setInterval(function () {
+    var a = song.a; if (!a || a.paused || !(a.duration < 100)) return;
+    var ex = EX.filter(function (e) { return e.media && e.media.song === song.src; })[0], lp = ex && ex.media.clipLoop;
+    if (lp && a.currentTime >= lp[1] && a.currentTime < lp[1] + 1) { try { a.currentTime = a.currentTime - (lp[1] - lp[0]); } catch (e) {} }
+  }, 20);
   // Safari and every iPhone browser only let a sound start by itself if its player was created or loaded
   // during a tap or click, so this runs once inside the "Enter the museum" click
   var unlocked = false;
@@ -993,7 +993,7 @@
     if (!src || !snd.on || songMuted) return;
     var a = songEl();
     if (song.src !== src) { clearInterval(song.timer); song.timer = 0; a.pause(); a.src = src; song.src = src; song.v = 0; try { a.volume = 0; } catch (e) {} }
-    a.loop = !(song.duck && a.duration && a.duration < 100);
+    a.loop = true;
     song.on = true; song.n = n;
     if (!VOL_OK) a.muted = song.duck;
     var pr = a.play();
