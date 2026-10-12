@@ -95,7 +95,8 @@ HH.EXHIBITS = [
       ["Post Malone and Swae Lee. “Sunflower (Spider-Man: Into the Spider-Verse).” 2018. Plays in this room.", "https://youtu.be/ApXoWvfEYVU"]
     ],
     audio: "audio/room1.mp3",
-    media: { photo: "assets/spiderverse.jpg", song: "audio/sunflower.mp3", clipLoop: [8.249, 29.582], voiceAt: 6.21, voiceLead: 0.71, songTitle: "Sunflower · Post Malone, Swae Lee", backdrop: "assets/bd-1-rooftops.jpg" }
+    audioF: "audio/room1-f.mp3",
+    media: { photo: "assets/spiderverse.jpg", song: "audio/sunflower.mp3", clipLoop: [8.249, 29.582], voiceAt: 6.21, voiceLead: 0.70, songTitle: "Sunflower · Post Malone, Swae Lee", backdrop: "assets/bd-1-rooftops.jpg" }
   },
   {
     n: 2, slug: "yuleum", side: 1,
@@ -159,7 +160,8 @@ HH.EXHIBITS = [
       ["CICADA album review and track list. brunch.", "https://brunch.co.kr/@breakevenpoint/127"]
     ],
     audio: "audio/room2.mp3",
-    media: { cover: "assets/cicada-cover.jpg", song: "audio/yuleum-hold-my-hand.mp3", clipLoop: [36.3, 56.308], voiceAt: 30.5, voiceLead: 0.60, backdrop: "assets/bd-2-booth.jpg" }
+    audioF: "audio/room2-f.mp3",
+    media: { cover: "assets/cicada-cover.jpg", song: "audio/yuleum-hold-my-hand.mp3", clipLoop: [36.3, 56.308], voiceAt: 30.5, voiceLead: 0.37, backdrop: "assets/bd-2-booth.jpg" }
   },
   {
     n: 3, slug: "ban", side: -1,
@@ -208,6 +210,7 @@ HH.EXHIBITS = [
       ["“GG EZ.” Lyrics video (EN/KR/JP). Plays in this room.", "https://youtu.be/6lN51mwvuA8"]
     ],
     audio: "audio/room3.mp3",
+    audioF: "audio/room3-f.mp3",
     media: { photo: "assets/sns-ban.jpg", song: "audio/gg-ez.mp3", clipLoop: [17.777, 32.856], voiceAt: 11.35, voiceLead: 0.63, songTitle: "GG EZ", backdrop: "assets/bd-3-phones.jpg" }
   },
   {
@@ -260,6 +263,7 @@ HH.EXHIBITS = [
       ["NewJeans. “New Jeans.” 2023. Plays in this room.", "https://youtu.be/G8GEpK7YDl4"]
     ],
     audio: "audio/room4.mp3",
+    audioF: "audio/room4-f.mp3",
     media: { calendar: "assets/ypt-calendar.jpg", timer: "assets/ypt-timer.jpg", song: "audio/newjeans.mp3", clipLoop: [24.89, 46.417], voiceAt: 14.57, voiceLead: 0.82, songTitle: "New Jeans · NewJeans", backdrop: "assets/bd-4-studycafe.jpg" }
   },
   {
@@ -315,7 +319,8 @@ HH.EXHIBITS = [
       ["양홍원 (YANGHONGWON). “사계.” Plays in this room.", "https://youtu.be/SyuR49nbmrw"]
     ],
     audio: "audio/room5.mp3",
-    media: { screenshot: "assets/spotify.jpg", song: "audio/yanghongwon-sagye.mp3", clipLoop: [32.952, 52.152], voiceAt: 22.11, voiceLead: 0.74, songTitle: "사계 · 양홍원", backdrop: "assets/bd-5-records.jpg" }
+    audioF: "audio/room5-f.mp3",
+    media: { screenshot: "assets/spotify.jpg", song: "audio/yanghongwon-sagye.mp3", clipLoop: [32.952, 52.152], voiceAt: 22.11, voiceLead: 0.75, songTitle: "사계 · 양홍원", backdrop: "assets/bd-5-records.jpg" }
   },
   {
     n: 6, slug: "taekwondo", side: 1,
@@ -362,6 +367,7 @@ HH.EXHIBITS = [
       ["Sik-K (식케이) and Lil Moshpit. “LALALA (Snitch Club K-FLIP).” Plays in this room.", "https://youtu.be/lbTuRQ0pHEk"]
     ],
     audio: "audio/room6.mp3",
+    audioF: "audio/room6-f.mp3",
     media: { certificate: "assets/poom-certificate.jpg", kickVideo: "", song: "audio/lalala.mp3", clipLoop: [37.317, 56.517], voiceAt: 12.87, voiceLead: 0.67, songTitle: "LALALA · Sik-K, Lil Moshpit", backdrop: "assets/bd-6-dojang.jpg" }
   }
 ];

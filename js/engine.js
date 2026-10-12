@@ -17,6 +17,7 @@
   var draft = !!HH.DRAFT_MODE;
   if (!draft) document.body.classList.add("hh-final");
   dbg.quality = quality;
+  Object.defineProperty(dbg, "curator", { get: function () { return curator; } });
   var store = {
     get: function (k) { try { return localStorage.getItem("hh2." + k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem("hh2." + k, v); } catch (e) {} }
@@ -774,32 +775,93 @@
 
   /* ---------- audio guide ---------- */
   var guides = {};
+  // the curator's voice: male (low, cold) or female (bright) take of the same narration, on the same timeline
+  var curator = store.get("curator") === "f" ? "f" : "m";
+  function leadOf(m) { return curator === "f" && m.voiceLeadF != null ? +m.voiceLeadF : m.voiceLead != null ? +m.voiceLead : VOICE_LEAD; }
   function guideFor(n) {
     if (guides[n]) return guides[n];
-    var ex = EX[n - 1], a = new Audio();
-    var g = guides[n] = { a: a, status: "checking", uis: [] };
-    a.preload = "metadata";
-    a.addEventListener("loadedmetadata", function () { g.status = "ok"; paintGuide(n); });
-    a.addEventListener("error", function () { g.status = "missing"; paintGuide(n); });
-    a.addEventListener("timeupdate", function () { paintGuide(n); });
+    var ex = EX[n - 1];
+    var g = guides[n] = { a: null, els: {}, status: "checking", uis: [] };
     // keep the song up through the room tone at the start of his recording and dip it as his first word lands,
     // so the beat he times his voice to is still heard
     var duckIv = 0;
     function duckWhenTalking() {
       clearInterval(duckIv); duckIv = 0;
-      var m = ex.media || {}, at = (m.voiceLead != null ? +m.voiceLead : VOICE_LEAD) - 0.03;
+      var a = g.a, m = ex.media || {}, at = leadOf(m) - 0.03;
       if ((a.currentTime || 0) >= at) { duck(true); return; }
       duckIv = setInterval(function () {
-        if (a.paused) { clearInterval(duckIv); duckIv = 0; return; }
+        if (a !== g.a || a.paused) { clearInterval(duckIv); duckIv = 0; return; }
         if (a.currentTime >= at) { clearInterval(duckIv); duckIv = 0; duck(true); }
       }, 20);
     }
-    a.addEventListener("play", function () { g.done = false; duckWhenTalking(); paintGuide(n); });
-    a.addEventListener("pause", function () { clearInterval(duckIv); duckIv = 0; if (!document.hidden) duck(false); paintGuide(n); });
-    a.addEventListener("ended", function () { g.done = true; a.currentTime = 0; paintGuide(n); });
-    a.src = ex.audio;
+    // one player per curator voice; only the active one (g.a) drives the label, the song ducking and "done"
+    g.voice = function (c) {
+      if (g.els[c]) return g.els[c];
+      var a = g.els[c] = new Audio(), on = function () { return g.a === a; };
+      a.preload = "metadata";
+      a.addEventListener("loadedmetadata", function () { if (on()) { g.status = "ok"; paintGuide(n); } });
+      a.addEventListener("error", function () { if (on()) { g.status = "missing"; paintGuide(n); } });
+      a.addEventListener("timeupdate", function () { if (on()) paintGuide(n); });
+      a.addEventListener("play", function () {
+        if (!on()) return;
+        g.done = false; duckWhenTalking(); paintGuide(n);
+        var alt = ex.audioF && g.voice(c === "f" ? "m" : "f"); if (alt && alt.preload !== "auto") alt.preload = "auto"; // so a switch is instant
+      });
+      a.addEventListener("pause", function () { if (on()) { clearInterval(duckIv); duckIv = 0; if (!document.hidden && !g.swapping) duck(false); paintGuide(n); } });
+      a.addEventListener("ended", function () { if (on()) { g.done = true; a.currentTime = 0; paintGuide(n); } });
+      a.src = c === "f" && ex.audioF ? ex.audioF : ex.audio;
+      return a;
+    };
+    g.a = g.voice(curator);
     return g;
   }
+  // switching voices mid-sentence picks the other take up at the same second, without the song swelling in between
+  function swapVoice(n) {
+    var g = guides[n], ex = EX[n - 1];
+    if (!ex.audio || !ex.audioF) return;
+    var old = g.a, a = g.voice(curator);
+    if (a === old) return;
+    var t = g.swapping ? g.swapT : (old.currentTime || 0), playing = g.swapping ? g.swapPlay : !old.paused;
+    g.swapT = t; g.swapPlay = playing; g.swapping = true;
+    g.a = a; if (old.preload === "auto") a.preload = "auto";
+    if (!old.paused) old.pause(); // no longer the active player, so its pause event is ignored
+    g.status = a.readyState >= 1 ? "ok" : "checking";
+    var go = function () {
+      a.removeEventListener("loadedmetadata", go);
+      if (g.a !== a) return; // switched again before this take loaded
+      try { if (Math.abs((a.currentTime || 0) - t) > 0.02) a.currentTime = Math.min(t, Math.max(0, (a.duration || t) - 0.1)); } catch (e) {}
+      g.swapping = false;
+      if (playing && snd.on) { var pr = a.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      else if (!a.paused) a.pause();
+      paintGuide(n);
+    };
+    if (a.readyState >= 1) go(); else a.addEventListener("loadedmetadata", go);
+    paintGuide(n);
+  }
+  var curToastT = 0;
+  function paintCurator() {
+    Array.prototype.forEach.call(document.querySelectorAll(".cur-sw"), function (sw) {
+      sw.dataset.cur = curator;
+      Array.prototype.forEach.call(sw.querySelectorAll("[data-voice]"), function (b) { b.setAttribute("aria-checked", String(b.dataset.voice === curator)); });
+    });
+  }
+  function setCurator(c) {
+    if ((c !== "m" && c !== "f") || c === curator) return;
+    curator = c; store.set("curator", c); paintCurator();
+    Object.keys(guides).forEach(function (k) { swapVoice(+k); });
+    var t = $("curToast");
+    if (t) {
+      t.innerHTML = "Curator voice <b>" + (c === "f" ? "Female" : "Male") + "</b>";
+      t.classList.add("on"); clearTimeout(curToastT);
+      curToastT = setTimeout(function () { t.classList.remove("on"); }, 1700);
+    }
+  }
+  document.addEventListener("click", function (e) {
+    var sw = e.target.closest(".cur-sw"); if (!sw) return;
+    var b = e.target.closest("[data-voice]");
+    setCurator(b ? b.dataset.voice : curator === "m" ? "f" : "m"); // the "Curator" caption flips it
+  });
+  paintCurator();
   function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60); }
   function paintGuide(n) {
     var g = guides[n]; if (!g) return;
@@ -876,7 +938,7 @@
     var g = guideFor(n); g.a.preload = "auto";
     g.done = false; if (g.a.paused && g.a.currentTime !== 0) { try { g.a.currentTime = 0; } catch (e) {} } // a new visit starts him from the top
     auto.n = n;
-    var cue = +m.voiceAt, lead = m.voiceLead != null ? +m.voiceLead : VOICE_LEAD;
+    var cue = +m.voiceAt, lead = leadOf(m);
     if (m.song && cue > 0 && song.a && song.src === m.song && song.on) {
       if (!keepSong) { try { song.a.currentTime = 0; } catch (e) {} }
       var lastT = -1, lastMove = Date.now();
@@ -973,7 +1035,7 @@
   function unlockMedia() {
     if (unlocked) return; unlocked = true;
     var els = [songEl()];
-    EX.forEach(function (e) { if (e.audio) els.push(guideFor(e.n).a); });
+    EX.forEach(function (e) { if (e.audio) { var g = guideFor(e.n); els.push(g.voice("m")); if (e.audioF) els.push(g.voice("f")); } }); // both curator voices
     els.forEach(function (el) { try { el.load(); } catch (e) {} });
   }
   function songFade() {
@@ -1222,7 +1284,11 @@
     $("ticket").innerHTML = "<span>Admit one</span><b>Gen Z wing</b>" +
       "<span>Project</span><span>English 11 · Q1\u00a0Summative\u00a02</span>" +
       "<span>Rooms</span><span>" + EX.length + " · " + req + " required · " + (EX.length - req) + " free choice</span>" +
-      "<span>To walk</span><span>" + (coarse ? "Swipe or tap the numbers" : "Arrow keys · scroll · click") + "</span>";
+      "<span>To walk</span><span>" + (coarse ? "Swipe or tap the numbers" : "Arrow keys · scroll · click") + "</span>" +
+      '<span>Curator</span><span><span class="cur-sw cur-tk" data-cur="m" role="radiogroup" aria-label="Curator voice"><span class="cur-seg">' +
+      '<button type="button" role="radio" data-voice="m" aria-checked="true" aria-label="Male curator">Male</button>' +
+      '<button type="button" role="radio" data-voice="f" aria-checked="false" aria-label="Female curator">Female</button></span></span></span>';
+    paintCurator();
     $("lobbyFoot").textContent = "Curated by " + SITE.curator + " · " + SITE.course;
   }
   function showLobby(on) {
@@ -1332,6 +1398,7 @@
       if (imm) { closeImmersive(); return; }
       if (overlayOpen) { closeOverlay(overlayOpen); return; }
     }
+    if ((e.key === "c" || e.key === "C") && !e.metaKey && !e.ctrlKey && !e.altKey) { setCurator(curator === "m" ? "f" : "m"); return; }
     if (!entered || imm || overlayOpen === "flat") return;
     var at = walk ? walk.to : dbg.stop;
     var k = e.key;
